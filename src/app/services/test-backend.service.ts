@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class TestBackendService {
     // URL base de tu backend de Spring Boot
-    private apiUrl = 'http://localhost:8080/';
+    private apiUrl = 'https://servidorhomely.app/';
 
     constructor(private http: HttpClient) { }
 

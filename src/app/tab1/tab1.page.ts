@@ -16,7 +16,7 @@ export class Tab1Page implements AfterViewInit {
 
   prueba() {
     this.testBackend.testGet('public/saludo').subscribe({
-      next: (data) => console.log('Respuesta: ', data),
+      next: (data) => console.log(data),
       error: (error) => console.error('Error: ', error)
     });
   }
