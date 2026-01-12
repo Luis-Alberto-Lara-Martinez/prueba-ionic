@@ -7,6 +7,8 @@ declare const google: any;
 })
 export class GoogleAuth {
   private googleReady: Promise<void>;
+  private client: any;
+  private readonly clientId = '66886319688-repfu7bd9mt2jeo3me04t66nhoro77lv.apps.googleusercontent.com';
 
   constructor() {
     this.googleReady = this.waitForGoogle();
@@ -26,28 +28,47 @@ export class GoogleAuth {
     });
   }
 
-  async initialize(callback: (idToken: string) => void): Promise<void> {
+  async initialize(callback: (response: any) => void): Promise<void> {
     await this.googleReady;
-    google.accounts.id.initialize({
-      client_id: '66886319688-repfu7bd9mt2jeo3me04t66nhoro77lv.apps.googleusercontent.com',
-      callback: (response: any) => callback(response.credential)
+
+    // Inicializar el cliente OAuth2 con ux_mode popup
+    this.client = google.accounts.oauth2.initTokenClient({
+      client_id: this.clientId,
+      scope: 'openid email profile',
+      ux_mode: 'popup',
+      callback: async (response: any) => {
+        if (response.access_token) {
+          // Obtener información del usuario con el access token
+          const userInfo = await this.getUserInfo(response.access_token);
+          callback({
+            accessToken: response.access_token,
+            user: userInfo
+          });
+        }
+      },
     });
   }
 
-  async renderButton(elementId: string, config?: any): Promise<void> {
+  async signInWithPopup(): Promise<void> {
     await this.googleReady;
-    const element = document.getElementById(elementId);
-    if (!element) throw new Error(`Element with id '${elementId}' not found`);
-
-    google.accounts.id.renderButton(element, {
-      theme: 'outline',
-      size: 'large',
-      ...config
-    });
+    if (this.client) {
+      this.client.requestAccessToken();
+    } else {
+      throw new Error('Google client not initialized. Call initialize() first.');
+    }
   }
 
-  async prompt(): Promise<void> {
-    await this.googleReady;
-    google.accounts.id.prompt();
+  private async getUserInfo(accessToken: string): Promise<any> {
+    try {
+      const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching user info:', error);
+      return null;
+    }
   }
 }
