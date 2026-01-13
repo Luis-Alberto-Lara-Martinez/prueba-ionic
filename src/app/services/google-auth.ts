@@ -31,44 +31,57 @@ export class GoogleAuth {
   async initialize(callback: (response: any) => void): Promise<void> {
     await this.googleReady;
 
-    // Inicializar el cliente OAuth2 con ux_mode popup
-    this.client = google.accounts.oauth2.initTokenClient({
+    google.accounts.id.initialize({
       client_id: this.clientId,
-      scope: 'openid email profile',
-      ux_mode: 'popup',
-      callback: async (response: any) => {
-        if (response.access_token) {
-          // Obtener información del usuario con el access token
-          const userInfo = await this.getUserInfo(response.access_token);
+      callback: (response: any) => {
+        if (response.credential) {
+          const payload = this.parseJwt(response.credential);
           callback({
-            accessToken: response.access_token,
-            user: userInfo
+            idToken: response.credential,
+            user: {
+              email: payload.email,
+              name: payload.name,
+              picture: payload.picture,
+              sub: payload.sub,
+              ...payload
+            }
           });
         }
-      },
+      }
     });
   }
 
-  async signInWithPopup(): Promise<void> {
+  async renderButton(element: HTMLElement): Promise<void> {
     await this.googleReady;
-    if (this.client) {
-      this.client.requestAccessToken();
-    } else {
-      throw new Error('Google client not initialized. Call initialize() first.');
+    google.accounts.id.renderButton(
+      element,
+      { theme: 'outline', size: 'large' }  // customization attributes
+    );
+  }
+
+  // Helper to parse JWT token without external libraries
+  private parseJwt(token: string) {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      console.error('Error parsing JWT', e);
+      return {};
     }
   }
 
+  // Deprecated: OAuth2 popup flow
+  async signInWithPopup(): Promise<void> {
+    console.warn('signInWithPopup is deprecated for ID Token flow. Use the rendered Google Button.');
+  }
+
   private async getUserInfo(accessToken: string): Promise<any> {
-    try {
-      const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
-      });
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching user info:', error);
-      return null;
-    }
+    // No longer needed for ID token flow as info is in the token
+    return null;
   }
 }
