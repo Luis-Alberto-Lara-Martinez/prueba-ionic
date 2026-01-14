@@ -16,11 +16,20 @@
   <app-explore-container name="Tab 1 page"></app-explore-container>
 
   <div class="ion-padding ion-text-center">
-    <div id="google-btn"></div>
-<!--    <ion-button (click)="signInWithGoogle()" expand="block" color="light">-->
-<!--      <ion-icon name="logo-google" slot="start"></ion-icon>-->
-<!--      Iniciar sesión con Google-->
-<!--    </ion-button>-->
+    <!-- Mostrar botón de login si NO está autenticado -->
+    <ion-button *ngIf="!(user$ | async)" (click)="signInWithGoogle()" expand="block" color="primary">
+      Iniciar sesión con Google
+    </ion-button>
+
+    <!-- Mostrar info del usuario si ESTÁ autenticado -->
+    <div *ngIf="user$ | async as user" class="user-info">
+      <img [src]="user.picture" alt="Foto" class="avatar" />
+      <h2>{{ user.name }}</h2>
+      <p>{{ user.email }}</p>
+      <ion-button (click)="signOut()" expand="block" color="danger">
+        Cerrar sesión
+      </ion-button>
+    </div>
   </div>
 
   <ion-button (click)="prueba()">Prueba backend</ion-button>
