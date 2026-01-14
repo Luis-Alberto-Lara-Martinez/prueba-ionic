@@ -93,6 +93,9 @@ export class GoogleAuth {
         this.accessToken = accessToken;
         this.idToken = idToken;
 
+        // Mostrar el ID token completo sin decodificar
+        console.log('🔐 ID Token completo (sin decodificar):', idToken);
+
         // Decodificar el ID token para obtener la info del usuario
         const user = this.parseIdToken(idToken);
 
