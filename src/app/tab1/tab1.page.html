@@ -21,6 +21,10 @@
       Iniciar sesión con Google
     </ion-button>
 
+    <ion-button *ngIf="!(user$ | async)" (click)="loginWithMicrosoft()" expand="block" color="secondary">
+      Iniciar sesión con Microsoft
+    </ion-button>
+
     <!-- Mostrar info del usuario si ESTÁ autenticado -->
     <div *ngIf="user$ | async as user" class="user-info">
       <img [src]="user.picture" alt="Foto" class="avatar" />

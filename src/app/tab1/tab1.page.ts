@@ -39,6 +39,14 @@ export class Tab1Page implements OnInit {
     }
   }
 
+  async loginWithMicrosoft() {
+    try {
+      await this.googleAuth.loginWithMicrosoft();
+    } catch (error) {
+      console.error('Error en login con Microsoft:', error);
+    }
+  }
+
   async signOut() {
     await this.googleAuth.signOut();
   }
